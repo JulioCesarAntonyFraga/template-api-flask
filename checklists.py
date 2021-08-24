@@ -101,3 +101,76 @@ def get_checklist(user):
     except Exception as e:
         response = jsonify({'message': 'Erro. Não foi possível acessar a checklist dessa conta.'})
         return response, 500
+
+####METODO CRIAR CHECKLIST############
+def create_checklist(user):
+    try:
+        json_data_edit_checklist = request.json
+        User_id = user['Id']
+        descricao = json_data_edit_checklist['descricao']
+        observacao = json_data_edit_checklist['observacao']
+        title = json_data_edit_checklist['title']
+
+        dict_checklist = {'descricao': descricao, 'observacao': observacao, 'title': title,
+        'CategoriasID': 'NaN', 'deleted_categoria': True, 'icon': 'https://firebasestorage.googleapis.com/v0/b/connect-my-health-24512.appspot.com/o/edit_viagem.png?alt=media&token=d4c2ecde-9e3c-446b-89f0-d8d5d605e1f6'
+        }
+
+        #####EDITANDO OS DADOS DA CHECKLIST####################
+        db.collection('accounts').document(User_id).collection('checklists').add(dict_checklist)
+        try:
+            categorias_data = db.collection('accounts').document(User_id).collection('categorias').get()
+            if(len(categorias_data) != 0):
+                for cat in categorias_data:
+                    db.collection('accounts').document(User_id).collection('checklists').add(dict_checklist)
+        except:
+            pass
+        response = jsonify({'message':'Checklist criada com sucesso.'})
+        return response, 200
+    except Exception as e:
+        response = jsonify({'message':'Não foi possível criar uma checklist. Mais detalhes: ' + str(e)})
+        return response, 500
+
+####METODO EDITAR CHECKLIST############
+def edit_checklist(user):
+    try:
+        json_data_edit_checklist = request.json
+        User_id = user['Id']
+        checklist = json_data_edit_checklist['uid_checklist']
+    
+
+        #####EDITANDO OS DADOS DA CHECKLIST####################
+        db.collection('accounts').document(User_id).collection('checklists').document(checklist).update(json_data_edit_checklist)
+        try:
+            categorias_data = db.collection('accounts').document(User_id).collection('categorias').get()
+            if(len(categorias_data) != 0):
+                for cat in categorias_data:
+                    db.collection('accounts').document(User_id).collection('categorias').document(cat.id).collection('checklists').document(checklist).update(json_data_edit_checklist)
+        except:
+            pass
+        response = jsonify({'message':'Editado com sucesso.'})
+        return response, 200
+    except Exception as e:
+        response = jsonify({'message':'Não foi possível editar a checklist.' + str(e)})
+        return response, 500
+
+####METODO DELETAR CHECKLIST############
+def detele_checklist(user):
+    try:
+        json_data_delete_checklist = str(request.args['Account'])
+        User_id = user['Id']
+        checklist = json_data_delete_checklist
+    
+        #####EDITANDO OS DADOS DA CHECKLIST####################
+        db.collection('accounts').document(User_id).collection('checklists').document(checklist).delete()
+        try:
+            categorias_data = db.collection('accounts').document(User_id).collection('categorias').get()
+            if(len(categorias_data) != 0):
+                for cat in categorias_data:
+                    db.collection('accounts').document(User_id).collection('categorias').document(cat.id).collection('checklists').document(checklist).delete()
+        except:
+            pass
+        response = jsonify({'message':'Checklist deletada com sucesso.'})
+        return response, 200
+    except Exception as e:
+        response = jsonify({'message':'Não foi possível deletar a checklist. Mais detalhes: ' + str(e)})
+        return response, 500

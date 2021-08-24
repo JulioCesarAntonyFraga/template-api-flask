@@ -17,7 +17,7 @@ def Login():
         userToken = auth_pyrebase.get_account_info(user['idToken'])
         userId = userToken['users'][0]['localId']
         account = db.collection('accounts').document(userId).get()
-        token = jwt.encode({'user': {'Id': userId, 'UserName': account.get('name'), 'Email': json_data['Email']},'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},secret_key)
+        token = jwt.encode({'Id': userId, 'UserName': account.get('name'), 'Email': json_data['Email'],'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},secret_key)
         return jsonify({'user': {'Id': userId, 'UserName': account.get('name'), 'Email': json_data['Email']}, 'token': token})
     except Exception as e:
         response = jsonify({'message': 'Usuário ou senha incorretos' + str(e)})
